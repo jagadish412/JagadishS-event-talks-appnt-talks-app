@@ -627,6 +627,9 @@ function selectEntry(entry) {
     });
     
     renderReaderPane();
+    
+    // Automatically switch to details pane view on mobile devices
+    switchToMobileReader();
 }
 
 // Select Entry by its ID (used for sidebar bookmark clicks)
