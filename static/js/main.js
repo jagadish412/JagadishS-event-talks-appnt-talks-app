@@ -42,15 +42,42 @@ const DOM = {
     releaseArticle: document.getElementById('releaseArticle'),
     mobileShowTimeline: document.getElementById('mobileShowTimeline'),
     mobileShowReader: document.getElementById('mobileShowReader'),
-    appContainer: document.querySelector('.app-container')
+    appContainer: document.querySelector('.app-container'),
+    themeToggleCheckbox: document.getElementById('themeToggleCheckbox'),
+    exportCsvBtn: document.getElementById('exportCsvBtn')
 };
 
 // Initialize Application
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     loadBookmarks();
     initEventListeners();
     fetchFeedData();
 });
+
+// Initialize Theme Manager
+function initTheme() {
+    if (DOM.themeToggleCheckbox) {
+        const currentTheme = localStorage.getItem('bq_release_theme') || 'dark';
+        if (currentTheme === 'light') {
+            document.body.classList.add('light-theme');
+            DOM.themeToggleCheckbox.checked = true;
+        } else {
+            document.body.classList.remove('light-theme');
+            DOM.themeToggleCheckbox.checked = false;
+        }
+        
+        DOM.themeToggleCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                document.body.classList.add('light-theme');
+                localStorage.setItem('bq_release_theme', 'light');
+            } else {
+                document.body.classList.remove('light-theme');
+                localStorage.setItem('bq_release_theme', 'dark');
+            }
+        });
+    }
+}
 
 // Load Bookmarks from LocalStorage
 function loadBookmarks() {
@@ -198,6 +225,45 @@ function initEventListeners() {
         DOM.mobileShowTimeline.classList.remove('active');
         DOM.mobileShowReader.classList.add('active');
     });
+    
+    // Export to CSV button click
+    if (DOM.exportCsvBtn) {
+        DOM.exportCsvBtn.addEventListener('click', () => {
+            if (appState.filteredEntries.length === 0) {
+                alert("No release notes to export.");
+                return;
+            }
+            
+            const headers = ["Date", "Category", "Release Text", "URL Link"];
+            const rows = [];
+            
+            appState.filteredEntries.forEach(entry => {
+                entry.items.forEach(item => {
+                    rows.push([
+                        entry.title,
+                        item.category,
+                        item.text,
+                        entry.link || "https://cloud.google.com/bigquery/docs/release-notes"
+                    ]);
+                });
+            });
+            
+            const csvContent = [
+                headers.join(','),
+                ...rows.map(r => r.map(val => `"${val.replace(/"/g, '""')}"`).join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `bigquery_release_notes_${new Date().toISOString().slice(0, 10)}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    }
 }
 
 function switchToMobileReader() {
@@ -486,9 +552,16 @@ function renderTimeline() {
         card.innerHTML = `
             <div class="release-card-header">
                 <span class="release-card-date">${entry.title}</span>
-                <svg class="release-card-star icon" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-                </svg>
+                <div class="release-card-actions">
+                    <button class="card-copy-btn" title="Copy snippet to clipboard">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                        </svg>
+                    </button>
+                    <svg class="release-card-star icon" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                    </svg>
+                </div>
             </div>
             <h4 class="release-card-title">${entry.title} Updates</h4>
             <p class="release-card-snippet">${snippetText}</p>
@@ -496,6 +569,39 @@ function renderTimeline() {
                 ${badgeHTML}
             </div>
         `;
+        
+        // Bind Copy Button event
+        const copyBtn = card.querySelector('.card-copy-btn');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Avoid selecting the card
+                
+                const textToCopy = `Google BigQuery [${entry.title}] Updates:\n` + 
+                    entry.items.map((it, i) => `${i+1}. [${it.category}] ${it.text}`).join('\n\n');
+                
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    copyBtn.classList.add('copied');
+                    copyBtn.setAttribute('title', 'Copied!');
+                    copyBtn.innerHTML = `
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                        </svg>
+                    `;
+                    
+                    setTimeout(() => {
+                        copyBtn.classList.remove('copied');
+                        copyBtn.setAttribute('title', 'Copy snippet to clipboard');
+                        copyBtn.innerHTML = `
+                            <svg class="icon" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+                            </svg>
+                        `;
+                    }, 1500);
+                }).catch(err => {
+                    console.error('Copy failed: ', err);
+                });
+            });
+        }
         
         card.addEventListener('click', () => {
             selectEntry(entry);

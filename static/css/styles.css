@@ -1161,3 +1161,176 @@ body {
         display: none; /* Hide labels on mobile action buttons to save space */
     }
 }
+
+/* Theme Switcher Styles */
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+.theme-switch {
+    display: inline-block;
+    height: 28px;
+    position: relative;
+    width: 50px;
+    cursor: pointer;
+}
+
+.theme-switch input {
+    display: none;
+}
+
+.slider {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: .4s;
+    border-radius: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px;
+    overflow: hidden;
+}
+
+.slider svg {
+    width: 14px;
+    height: 14px;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.sun-icon {
+    color: var(--text-muted);
+}
+
+.moon-icon {
+    color: var(--text-primary);
+}
+
+.slider:before {
+    background-color: var(--text-primary);
+    bottom: 3px;
+    content: "";
+    height: 20px;
+    left: 3px;
+    position: absolute;
+    transition: .4s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 20px;
+    border-radius: 50%;
+    z-index: 2;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .slider:before {
+    transform: translateX(22px);
+    background-color: var(--text-primary);
+}
+
+input:checked + .slider .sun-icon {
+    color: #f59e0b; /* Yellow active sun */
+}
+
+input:checked + .slider .moon-icon {
+    color: var(--text-muted);
+}
+
+/* Light Theme Variables Overrides */
+body.light-theme {
+    --bg-color-main: #f1f5f9;
+    --bg-color-card: rgba(255, 255, 255, 0.75);
+    --bg-color-sidebar: rgba(248, 250, 252, 0.85);
+    --bg-color-active: rgba(59, 130, 246, 0.1);
+    
+    --border-color: rgba(15, 23, 42, 0.08);
+    --border-color-glow: rgba(59, 130, 246, 0.35);
+    
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    
+    --glow-shadow: 0 4px 15px rgba(59, 130, 246, 0.08);
+    --panel-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.06);
+}
+
+body.light-theme .glow-orb {
+    opacity: 0.06;
+}
+
+body.light-theme .glass-panel {
+    background: var(--bg-color-card);
+    border-color: var(--border-color);
+}
+
+body.light-theme .release-card {
+    background: rgba(255, 255, 255, 0.5);
+    border-color: var(--border-color);
+}
+
+body.light-theme .release-card:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: var(--border-color-glow);
+}
+
+body.light-theme .release-card.active {
+    background: rgba(59, 130, 246, 0.05);
+    border-color: #3b82f6;
+}
+
+body.light-theme .release-article code {
+    background: rgba(15, 23, 42, 0.05);
+    color: #db2777;
+}
+
+body.light-theme .release-article pre {
+    background: #f8fafc;
+    border-color: var(--border-color);
+}
+
+body.light-theme .release-article pre code {
+    color: #334155;
+}
+
+/* Copy button inside timeline cards */
+.release-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-copy-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    opacity: 0;
+}
+
+.release-card:hover .card-copy-btn {
+    opacity: 1;
+}
+
+.card-copy-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+body.light-theme .card-copy-btn:hover {
+    background: rgba(15, 23, 42, 0.05);
+}
+
+.card-copy-btn.copied {
+    color: var(--color-feature) !important;
+}
+
